@@ -34,6 +34,7 @@ propgroup presentation {
     property use userpics_style_group;
     property use userpics_position;
     property use entry_metadata_position;
+    property use entry_tags_position;
     property use userlite_interaction_links;
     property use entry_management_links;
     property use comment_management_links;

@@ -1410,6 +1410,11 @@ property string entry_metadata_position {
     values = "top|Before entry text|bottom|After entry text";
 }
 
+property string entry_tags_position {
+    des = "Place of tags in entries";
+    values = "top|Before entry text|bottom|After entry text";
+}
+
 property string userlite_interaction_links {
     des = "Select whether user interaction links are printed as text or using the available icons";
     values = "icons|icons|text|text-only|";
@@ -1451,6 +1456,7 @@ set entry_userpic_style = "";
 set comment_userpic_style = "";
 set userpics_position = "left";
 set entry_metadata_position = "bottom";
+set entry_tags_position = "bottom";
 set userlite_interaction_links = "icons";
 set entry_management_links = "icons";
 set entry_interaction_links = "text";
@@ -5038,6 +5044,7 @@ function Page::print_entry(Entry e)
     $e->print_userpic();
     $e->print_poster();
     if ($*entry_metadata_position == "top") { $e->print_metadata(); }
+    if ($*entry_tags_position == "top") { $e->print_tags(); }
     $e->print_text();
     if ($*entry_metadata_position == "bottom") { $e->print_metadata(); }
     """</div>\n""";
@@ -5046,7 +5053,7 @@ function Page::print_entry(Entry e)
 
     """<div class="footer">\n""";
     """<div class="inner">\n""";
-    $e->print_tags();
+    if ($*entry_tags_position == "bottom") { $e->print_tags(); }
     $this->print_entry_footer($e);
     "</div>\n</div>\n";
 
@@ -5240,7 +5247,6 @@ function EntryLite::print_metadata() {
 }
 function Entry::print_metadata() {
 # If new entry metadata types are added, they must be explicitly called by key here
-
     if (size $.metadata) {
         var string position = ($*entry_metadata_position == "top") ? " top-metadata" : " bottom-metadata";
         """<div class="metadata$position">\n<ul>\n""";
@@ -5257,6 +5263,7 @@ function Entry::print_metadata() {
         "</ul>\n</div>\n";
     }
 }
+
 function Comment::print_metadata() {
     if ($.metadata{"poster_ip"}) {
         print safe "<span class=\"poster-ip\"><span class=\"comment-ip-text\">$*text_comment_ipaddr</span> (" + $.metadata{"poster_ip"} + ")</span>";
@@ -5314,7 +5321,10 @@ function Entry::print_tags() [fixed] {
         if ( $show_tagnav_links ) {
           $dataAttributes = """ data-journal="$this.journal.username" data-ditemid="$this.itemid" """;
         }
-        """<div class="tag"><span class="tag-text"$dataAttributes>$*text_tags</span><ul>\n""";
+
+    if (size $.tags) {
+        var string position = ($*entry_tags_position == "top") ? " top-tags" : " bottom-tags";
+        """<div class="tags$position"><span class="tag-text"$dataAttributes>$*text_tags</span><ul>\n""";
 
         foreach var Tag t ($this.tags) {
             "<li>";
@@ -5323,9 +5333,9 @@ function Entry::print_tags() [fixed] {
             if ($tag_count < size $.tags) { print $*text_tags_item_sep; }
             "</li>\n";
         }
-        "</ul></div>";
+        "</ul>\n</div>\n";
     }
-}
+}}
 
 function EntryLite::print_userpic() {
     print "<div class=\"userpic\">";
